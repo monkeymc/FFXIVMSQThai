@@ -20,10 +20,21 @@
     <Content Include="thai_dict.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\content\**\*.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>content\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <TargetPath>content\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
-    </Content>
   </ItemGroup>
+
+  <Target Name="CopyZipToReleaseFolder" AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Release'">
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\..\Release\ffxiv-msq-thai\latest.zip"
+          DestinationFolder="$(MSBuildProjectDirectory)\..\release"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyContent" AfterTargets="Build">
+    <ItemGroup>
+      <_ContentJson Include="$(MSBuildProjectDirectory)\..\content\**\*.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ContentJson)"
+          DestinationFiles="@(_ContentJson->'$(OutDir)content\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 </Project>
