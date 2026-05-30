@@ -16,10 +16,10 @@
     <Content Include="thai_dict.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\content_community\**\*.json">
+    <Content Include="..\..\..\content\**\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>content_community\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <TargetPath>content_community\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+      <Link>content\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <TargetPath>content\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
     </Content>
   </ItemGroup>
 </Project>

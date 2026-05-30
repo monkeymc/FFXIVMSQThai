@@ -29,10 +29,10 @@ public class DialogueDictionary
     public DialogueDictionary(string contentRoot, IPluginLog log)
     {
         _log = log;
-        var root = Path.Combine(contentRoot, "content_community");
+        var root = Path.Combine(contentRoot, "content");
         if (!Directory.Exists(root))
         {
-            _log.Warning($"[ffxiv-msq-thai] content_community/ not found at: {root}");
+            _log.Warning($"[ffxiv-msq-thai] content/ not found at: {root}");
             return;
         }
 

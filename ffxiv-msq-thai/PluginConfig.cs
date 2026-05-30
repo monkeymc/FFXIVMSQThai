@@ -8,7 +8,7 @@ public class PluginConfig : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 
-    // Base directory that contains the content_community/ folder.
+    // Base directory that contains the content/ folder.
     // Empty string = use the plugin's assembly directory (default for release).
     public string ContentRoot { get; set; } = "";
 
