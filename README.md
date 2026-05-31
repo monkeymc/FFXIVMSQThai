@@ -30,5 +30,7 @@ https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/plugin
 - คลิกที่ MSQThai จากนั้นคลิกติดตั้ง
 - เริ่มเล่นเนื้อเรื่องต่อได้เลย บทสนทนาจะแสดงเป็นภาษาไทย
 
+![Box](https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/plugin.jpg)
+
 ## ปัญหาหรือข้อเสนอแนะ
 เปิด [Issue บน GitHub](https://github.com/monkeymc/FFXIVMSQThai/issues) ได้เลยครับ 🙏
