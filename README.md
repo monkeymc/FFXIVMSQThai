@@ -32,5 +32,5 @@ https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/plugin
 
 ![Box](https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/plugin.jpg)
 
-## ปัญหาหรือข้อเสนอแนะ
-เปิด [Issue บน GitHub](https://github.com/monkeymc/FFXIVMSQThai/issues) ได้เลยครับ 🙏
+## พบปัญหา หรือมีข้อเสนอแนะ
+สร้าง [Issue บน GitHub](https://github.com/monkeymc/FFXIVMSQThai/issues) ได้เลยครับ 🙏
