@@ -10,14 +10,17 @@
 
 ### ขั้นที่ 2 — เพิ่ม Repository ของ monkeymc
 - เข้าเกม login ตัวละคร แล้วกด ESC
+  
 ![Box](https://github.com/monkeymc/FFXIVMSQThai/raw/master/images/dalamud-settings.avif)
 - เลือก Dalamud Settings (หรือพิมพ์ `/xlsettings` ใน chat)
+
 ![Box](https://github.com/monkeymc/FFXIVMSQThai/raw/master/images/experimental.avif)
 - เปิดแท็บ Experimental
 - ในช่อง "Custom Plugin Repositories" ให้วาง URL นี้:
 ```
 https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/pluginmaster.json
 ```
+
 ![Box](https://github.com/monkeymc/FFXIVMSQThai/raw/master/images/box.avif)
 - กดปุ่ม + เพื่อเพิ่ม แล้วกด Save and Close
 
