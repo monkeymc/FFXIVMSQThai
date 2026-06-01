@@ -16,7 +16,8 @@
 		<Content Include="THSarabunNew-Bold.ttf">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="thai_dict.txt">
+		<Content Include="..\content\thai_dict.txt">
+			<Link>thai_dict.txt</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 
