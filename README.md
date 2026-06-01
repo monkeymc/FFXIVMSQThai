@@ -47,5 +47,7 @@ https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/plugin
 
 ![Box](https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/images/plugin.jpg)
 
+<img width="2560" height="1440" alt="ffxiv-msq-th-ai" src="https://github.com/user-attachments/assets/1d4c92aa-c00f-4f8f-8a8e-944d5c4bdba5" />
+
 ## พบปัญหา หรือมีข้อเสนอแนะ
 สร้าง [Issue บน GitHub](https://github.com/monkeymc/FFXIVMSQThai/issues) ได้เลยครับ 🙏
