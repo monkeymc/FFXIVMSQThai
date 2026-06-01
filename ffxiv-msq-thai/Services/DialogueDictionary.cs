@@ -1,3 +1,5 @@
+using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Common.Lua;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,12 +7,13 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Dalamud.Plugin.Services;
 
 namespace FfxivMsqThai.Services;
 
 public class DialogueDictionary
 {
+    private readonly Dictionary<string, string> _globalExactMatch = new(StringComparer.Ordinal);
+
     private readonly Dictionary<string, QuestPaths> _index = new(StringComparer.Ordinal);
     private readonly Dictionary<string, QuestContent?> _fileCache = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _searchCache = new(StringComparer.Ordinal);
@@ -41,8 +44,30 @@ public class DialogueDictionary
             var rel = Path.GetRelativePath(root, file);
             var slug = ToPureAlphanumericKey(Path.GetFileNameWithoutExtension(file));
             if (slug.Length > 0) _index[slug] = new QuestPaths(file, rel);
+            LoadIntoGlobalIndex(file);
         }
         _log.Information($"[ffxiv-msq-thai] Dictionary index ready — {_index.Count} quests.");
+    }
+
+    private void LoadIntoGlobalIndex(string filePath)
+    {
+        var questFile = Read<QuestFile>(filePath);
+        if (questFile?.Dialogues == null) return;
+
+        foreach (var d in questFile.Dialogues)
+        {
+            var enText = d.TextEn ?? string.Empty;
+            var thText = d.TextTh ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(enText) || string.IsNullOrWhiteSpace(thText)) continue;
+
+            var key = !string.IsNullOrEmpty(d.Key) ? d.Key : ToPureAlphanumericKey(enText);
+
+            if (!string.IsNullOrEmpty(key))
+            {
+                _globalExactMatch.TryAdd(key, thText);
+            }
+        }
     }
 
     public string? GetTranslation(string questSlug, string gameTextEn)
@@ -51,11 +76,21 @@ public class DialogueDictionary
         if (_searchCache.TryGetValue(cacheKey, out var cachedResult))
             return string.IsNullOrEmpty(cachedResult) ? null : cachedResult;
 
+        var exactKey = ToPureAlphanumericKey(gameTextEn);
+        if (_globalExactMatch.TryGetValue(exactKey, out var exactTranslation))
+        {
+            _log.Information($"[MSQ-Thai] Global Tier-1 Exact Match HIT!");
+            return CacheAndReturn(cacheKey, exactTranslation);
+        }
+
+        if (string.IsNullOrEmpty(questSlug)) return CacheAndReturn(cacheKey, null);
+
         var content = GetOrLoad(questSlug);
         if (content == null || content.Entries.Count == 0) return CacheAndReturn(cacheKey, null);
 
         var gameTokens = Tokenize(gameTextEn);
         if (gameTokens.Length == 0) return CacheAndReturn(cacheKey, null);
+
 
         QuestEntry? bestEntry = null;
         float bestScore = 0f;
@@ -175,6 +210,8 @@ public class DialogueDictionary
 
     private QuestContent? GetOrLoad(string questSlug)
     {
+        if (string.IsNullOrEmpty(questSlug)) return null;
+
         if (_fileCache.TryGetValue(questSlug, out var cached)) return cached;
         if (!_index.TryGetValue(questSlug, out var paths)) return null;
 
@@ -185,8 +222,13 @@ public class DialogueDictionary
         {
             foreach (var d in questFile.Dialogues)
             {
-                if (string.IsNullOrWhiteSpace(d.TextEn) || string.IsNullOrWhiteSpace(d.TextTh)) continue;
-                entries.Add(new QuestEntry(d.TextEn, d.TextTh, Tokenize(d.TextEn)));
+                var enText = d.TextEn ?? string.Empty;
+                var thText = d.TextTh ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(enText) || string.IsNullOrWhiteSpace(thText)) continue;
+
+                var key = !string.IsNullOrEmpty(d.Key) ? d.Key : ToPureAlphanumericKey(enText);
+                entries.Add(new QuestEntry(key, enText, thText, Tokenize(enText)));
             }
         }
 
@@ -201,12 +243,22 @@ public class DialogueDictionary
         return content;
     }
 
+    private static readonly Regex SeControlRegex = new(@"[\x02][\s\S]{1,4}[\x03]|[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", RegexOptions.Compiled);
+
     public static string ToPureAlphanumericKey(string input)
     {
         if (string.IsNullOrEmpty(input)) return string.Empty;
-        var sb = new StringBuilder(input.Length);
-        foreach (var c in input)
-            if (char.IsLetterOrDigit(c)) sb.Append(char.ToLowerInvariant(c));
+
+        var noPayload = SeControlRegex.Replace(input, string.Empty);
+
+        var sb = new StringBuilder(noPayload.Length);
+        foreach (var c in noPayload)
+        {
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
+            {
+                sb.Append(char.ToLowerInvariant(c));
+            }
+        }
         return sb.ToString();
     }
 
@@ -261,15 +313,30 @@ public class DialogueDictionary
     private record QuestPaths(string FilePath, string RelPath);
     private class QuestEntry
     {
+        public string Key { get; } // 🌟 เพิ่มตัวเก็บ Key
         public string TextEn { get; }
         public string TextTh { get; }
         public string[] EnTokens { get; }
-        public QuestEntry(string en, string th, string[] tokens) { TextEn = en; TextTh = th; EnTokens = tokens; }
+        public QuestEntry(string key, string en, string th, string[] tokens) { Key = key; TextEn = en; TextTh = th; EnTokens = tokens; }
     }
     private class QuestContent
     {
         public List<QuestEntry> Entries { get; }
-        public QuestContent(List<QuestEntry> e) => Entries = e;
+        public Dictionary<string, string> ExactMatchIndex { get; } // 🌟 Hash Map สำหรับ Tier 1
+        public QuestContent(List<QuestEntry> entries)
+        {
+            Entries = entries;
+            ExactMatchIndex = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            // นำ Key ทั้งหมดมายัดใส่ Hash Map ตอนโหลดไฟล์
+            foreach (var e in entries)
+            {
+                if (!string.IsNullOrEmpty(e.Key))
+                {
+                    ExactMatchIndex[e.Key] = e.TextTh;
+                }
+            }
+        }
     }
 
     // เปลี่นมาใช้คลาสปกติ (Bulletproof Json Binding)
@@ -279,6 +346,7 @@ public class DialogueDictionary
     }
     private class Dialogue
     {
+        [JsonPropertyName("key")] public string? Key { get; set; } // 🌟 เพิ่มบรรทัดนี้
         [JsonPropertyName("text_en")] public string? TextEn { get; set; }
         [JsonPropertyName("text")] public string? TextTh { get; set; }
     }

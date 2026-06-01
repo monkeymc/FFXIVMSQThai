@@ -2,7 +2,7 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
 
 	<PropertyGroup>
-		<Version>1.5.0.0</Version>
+		<Version>1.5.1.0</Version>
 		<IsPackable>false</IsPackable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Configurations>Debug;Release</Configurations>
@@ -16,10 +16,6 @@
 		<Content Include="THSarabunNew-Bold.ttf">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="..\content\thai_dict.txt">
-			<Link>thai_dict.txt</Link>
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
 
 		<Content Include="..\content\th\**\*.json">
 			<Link>content\%(RecursiveDir)%(Filename)%(Extension)</Link>
@@ -28,10 +24,7 @@
 	</ItemGroup>
 
 	<Target Name="CopyZipToRelease" AfterTargets="Build;ZipPluginBundle">
-		<Copy SourceFiles="$(OutDir)ffxiv-msq-thai\latest.zip"
-			  DestinationFiles="$(MSBuildProjectDirectory)\..\release\latest.zip"
-			  SkipUnchangedFiles="true"
-			  Condition="'$(Configuration)' == 'Release' And Exists('$(OutDir)ffxiv-msq-thai\latest.zip')" />
+		<Copy SourceFiles="$(OutDir)ffxiv-msq-thai\latest.zip" DestinationFiles="$(MSBuildProjectDirectory)\..\release\latest.zip" SkipUnchangedFiles="true" Condition="'$(Configuration)' == 'Release' And Exists('$(OutDir)ffxiv-msq-thai\latest.zip')" />
 	</Target>
 
 </Project>

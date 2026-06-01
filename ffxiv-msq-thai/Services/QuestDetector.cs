@@ -53,9 +53,9 @@ public sealed class QuestDetector
             // real MSQ progress (e.g. DT), NOT the NG+ replay quest. So when the
             // QuestRedoHud is active we skip AgentScenarioTree entirely and read the
             // NG+ quest from either the agent offset +46 or QuestManager TrackedQuests.
+            var agentModule = AgentModule.Instance();
             if (QuestManager.IsQuestComplete(3759))
             {
-                var agentModule = AgentModule.Instance();
                 var redoHud     = agentModule != null
                     ? agentModule->GetAgentByInternalId(AgentId.QuestRedoHud)
                     : null;
@@ -98,6 +98,22 @@ public sealed class QuestDetector
                 else if (verbose)
                 {
                     _log.Information("[MSQ-Thai-Quest] NG+ eligible but QuestRedoHud not active");
+                }
+            }
+
+            // ── Unending Journey (AgentArchive) ──────────────────────────────────────
+            var archiveAgent = agentModule != null ? agentModule->GetAgentByInternalId(AgentId.ArchiveItem) : null;
+            if (archiveAgent != null && archiveAgent->IsAgentActive())
+            {
+                // ใน FFXIVClientStructs ค่า Quest ID ของ UJ มักจะถูกเก็บเป็นตัวแปรใน Struct ของ Agent 
+                // หรือสามารถดึงได้จาก Event ID ปัจจุบัน
+                // (หมายเหตุ: Offset อาจต้องใช้ ReClass.NET ส่องดูอีกครั้ง แต่ปกติจะอยู่ราวๆ +0x28 หรือ +0x30)
+                ushort ujQuestId = MemoryHelper.Read<ushort>((nint)archiveAgent + 0x28);
+
+                if (ujQuestId != 0)
+                {
+                    var info = Resolve(ujQuestId);
+                    if (info != null) return info;
                 }
             }
 

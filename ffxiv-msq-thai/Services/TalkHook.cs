@@ -38,6 +38,7 @@ public sealed class TalkHook : IDisposable
     private string     _lastTextEn    = string.Empty;
     private string     _lastAddonName = string.Empty;
     private QuestInfo? _lastQuestInfo;
+    private QuestInfo? _previousQuestInfo;
 
     public string[] CurrentTokens { get; private set; } = Array.Empty<string>();
 
@@ -128,8 +129,6 @@ public sealed class TalkHook : IDisposable
         var questInfo = _questDetector.GetCurrentQuestInfo();
         LogQuestChangeIfNeeded(questInfo);
 
-        if (questInfo == null) { CurrentTokens = Array.Empty<string>(); return; }
-
         // ── Normalize key ─────────────────────────────────────────────────
         var displayEn = DialogueDictionary.NormalizeEnglishKey(textEn);
         var fullName  = _objectTable.LocalPlayer?.Name.ToString() ?? string.Empty;
@@ -141,12 +140,19 @@ public sealed class TalkHook : IDisposable
             displayEn = displayEn.Replace(firstName, "Forename");
 
         if (displayEn.Length == 0) { CurrentTokens = Array.Empty<string>(); return; }
+        
+        var questSlug = questInfo?.Slug ?? string.Empty;
 
         _log.Information($"[MSQ-Thai] Lookup '{Clip(displayEn)}'  quest='{questInfo.Slug}'");
 
         // ── Unified Search (Token-based & Proportional) ───────────────────
-        // ส่งข้อความดิบ (ที่มีช่องว่าง) ไปให้ Dictionary ตัดคำและประเมินความใกล้เคียง
-        var translation = _dictionary.GetTranslation(questInfo.Slug, displayEn);
+        var translation = _dictionary.GetTranslation(questSlug, displayEn);
+
+        if (translation == null && _previousQuestInfo != null && !string.IsNullOrEmpty(_previousQuestInfo.Slug))
+        {
+            _log.Information($"[MSQ-Thai] MISS on current, fallback to '{_previousQuestInfo.Slug}'");
+            translation = _dictionary.GetTranslation(_previousQuestInfo.Slug, displayEn);
+        }
 
         if (translation != null)
         {
@@ -165,6 +171,7 @@ public sealed class TalkHook : IDisposable
     private void LogQuestChangeIfNeeded(QuestInfo? current)
     {
         if (current?.Id == _lastQuestInfo?.Id) return;
+        _previousQuestInfo = _lastQuestInfo;
         _lastQuestInfo = current;
 
         if (current == null)
