@@ -45,7 +45,7 @@ https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/plugin
 
 - เริ่มเล่นเนื้อเรื่องต่อได้เลย บทสนทนาจะแสดงเป็นภาษาไทย
 
-![Box](https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/plugin.jpg)
+![Box](https://raw.githubusercontent.com/monkeymc/FFXIVMSQThai/refs/heads/master/images/plugin.jpg)
 
 ## พบปัญหา หรือมีข้อเสนอแนะ
 สร้าง [Issue บน GitHub](https://github.com/monkeymc/FFXIVMSQThai/issues) ได้เลยครับ 🙏
