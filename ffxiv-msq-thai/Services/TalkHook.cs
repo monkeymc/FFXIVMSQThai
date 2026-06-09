@@ -143,7 +143,7 @@ public sealed class TalkHook : IDisposable
         
         var questSlug = questInfo?.Slug ?? string.Empty;
 
-        _log.Information($"[MSQ-Thai] Lookup '{Clip(displayEn)}'  quest='{questInfo.Slug}'");
+        _log.Information($"[MSQ-Thai] Lookup '{Clip(displayEn)}'  quest='{questSlug}'");
 
         // ── Unified Search (Token-based & Proportional) ───────────────────
         var translation = _dictionary.GetTranslation(questSlug, displayEn);
