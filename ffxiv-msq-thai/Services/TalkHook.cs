@@ -30,28 +30,23 @@ public sealed class TalkHook : IDisposable
 
     private readonly IAddonLifecycle    _addonLifecycle;
     private readonly DialogueDictionary _dictionary;
-    private readonly QuestDetector      _questDetector;
     private readonly IClientState       _clientState;
     private readonly IObjectTable       _objectTable;
     private readonly IPluginLog         _log = Plugin.Log;
 
     private string     _lastTextEn    = string.Empty;
     private string     _lastAddonName = string.Empty;
-    private QuestInfo? _lastQuestInfo;
-    private QuestInfo? _previousQuestInfo;
 
     public string[] CurrentTokens { get; private set; } = Array.Empty<string>();
 
     public TalkHook(
         IAddonLifecycle    addonLifecycle,
         DialogueDictionary dictionary,
-        QuestDetector      questDetector,
         IClientState       clientState,
         IObjectTable       objectTable)
     {
         _addonLifecycle = addonLifecycle;
         _dictionary     = dictionary;
-        _questDetector  = questDetector;
         _clientState    = clientState;
         _objectTable    = objectTable;
 
@@ -125,10 +120,6 @@ public sealed class TalkHook : IDisposable
 
         if (string.IsNullOrWhiteSpace(textEn)) { CurrentTokens = Array.Empty<string>(); return; }
 
-        // ── Quest detection ───────────────────────────────────────────────
-        var questInfo = _questDetector.GetCurrentQuestInfo();
-        LogQuestChangeIfNeeded(questInfo);
-
         // ── Normalize key ─────────────────────────────────────────────────
         var displayEn = DialogueDictionary.NormalizeEnglishKey(textEn);
         var fullName  = _objectTable.LocalPlayer?.Name.ToString() ?? string.Empty;
@@ -140,19 +131,11 @@ public sealed class TalkHook : IDisposable
             displayEn = displayEn.Replace(firstName, "Forename");
 
         if (displayEn.Length == 0) { CurrentTokens = Array.Empty<string>(); return; }
-        
-        var questSlug = questInfo?.Slug ?? string.Empty;
 
-        _log.Information($"[MSQ-Thai] Lookup '{Clip(displayEn)}'  quest='{questSlug}'");
+        _log.Information($"[MSQ-Thai] Lookup '{Clip(displayEn)}'");
 
-        // ── Unified Search (Token-based & Proportional) ───────────────────
-        var translation = _dictionary.GetTranslation(questSlug, displayEn);
-
-        if (translation == null && _previousQuestInfo != null && !string.IsNullOrEmpty(_previousQuestInfo.Slug))
-        {
-            _log.Information($"[MSQ-Thai] MISS on current, fallback to '{_previousQuestInfo.Slug}'");
-            translation = _dictionary.GetTranslation(_previousQuestInfo.Slug, displayEn);
-        }
+        // ── Unified Search ───────────────────
+        var translation = _dictionary.GetTranslation(displayEn);
 
         if (translation != null)
         {
@@ -164,32 +147,6 @@ public sealed class TalkHook : IDisposable
             _log.Information($"[MSQ-Thai] MISS");
             CurrentTokens = Array.Empty<string>();
         }
-    }
-
-    // ── Quest-change log ──────────────────────────────────────────────────
-
-    private void LogQuestChangeIfNeeded(QuestInfo? current)
-    {
-        if (current?.Id == _lastQuestInfo?.Id) return;
-        _previousQuestInfo = _lastQuestInfo;
-        _lastQuestInfo = current;
-
-        if (current == null)
-        {
-            _log.Information("[MSQ-Thai-Quest] Quest: (none detected)");
-            return;
-        }
-
-        var filePath = _dictionary.GetQuestFilePath(current.Slug);
-        var keyCount = _dictionary.GetQuestKeyCount(current.Slug);
-
-        _log.Information(
-            $"[MSQ-Thai-Quest] Quest: id={current.Id}  name='{current.Name}'  slug='{current.Slug}'");
-
-        if (filePath != null)
-            _log.Information($"[MSQ-Thai-Quest]   File: {filePath}  ({keyCount} dialogue pairs)");
-        else
-            _log.Warning($"[MSQ-Thai-Quest]   File: NOT FOUND for slug='{current.Slug}'");
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
