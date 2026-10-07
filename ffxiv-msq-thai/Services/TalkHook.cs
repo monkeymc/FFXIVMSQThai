@@ -124,6 +124,7 @@ public sealed class TalkHook : IDisposable
         var displayEn = DialogueDictionary.NormalizeEnglishKey(textEn);
         var fullName  = _objectTable.LocalPlayer?.Name.ToString() ?? string.Empty;
         var firstName = !string.IsNullOrEmpty(fullName) ? fullName.Split(' ')[0] : string.Empty;
+        var surname   = !string.IsNullOrEmpty(fullName) ? fullName.Split(' ')[1] : string.Empty;
 
         if (!string.IsNullOrEmpty(fullName) && displayEn.Contains(fullName))
             displayEn = displayEn.Replace(fullName, "Forename Surname");
@@ -140,6 +141,11 @@ public sealed class TalkHook : IDisposable
         if (translation != null)
         {
             _log.Information($"[MSQ-Thai] HIT");
+            
+            translation = ReplaceName(translation, "Forename Surname", fullName);
+            translation = ReplaceName(translation, "Forename", firstName);
+            translation = ReplaceName(translation, "Surname", surname);
+
             ApplyTranslation(translation);
         }
         else
@@ -196,5 +202,16 @@ public sealed class TalkHook : IDisposable
         var child = FindTextNode(node->ChildNode);
         if (child != null) return child;
         return FindTextNode(node->NextSiblingNode);
+    }
+
+    private static string ReplaceName(string text, string placeholder, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return text;
+
+        return text
+            .Replace($"[{placeholder}]", value, StringComparison.OrdinalIgnoreCase)
+            .Replace($"{{{placeholder}}}", value, StringComparison.OrdinalIgnoreCase)
+            .Replace(placeholder, value, StringComparison.OrdinalIgnoreCase);
     }
 }
